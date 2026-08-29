@@ -1,0 +1,7 @@
+# Dependencies installed via npm/yarn
+node_modules/
+
+# Sensitive environment variables
+.env
+.env.local
+.env.production
