@@ -10,7 +10,7 @@ import {
 import Register from "./components/RegisterPage.jsx";
 import Login from "./components/LoginPage.jsx";
 import Worker from "./components/WorkerPage.jsx";
-import ProtectedRoute from "./components/protectRoute.jsx";
+import ProtectedRoute from "./components/ProtectRoute.jsx";
 
 import "./App.css";
 
