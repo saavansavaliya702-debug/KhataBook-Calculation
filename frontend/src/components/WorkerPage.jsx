@@ -257,7 +257,7 @@ function Worker() {
       )}
 
       <form className='form' onSubmit={calculate}>
-        <img src='../../public/logo.png' alt='Logo' className="mainpage" />
+        <img src='/logo.png' alt='Logo' className="mainpage" />
 
         <div
           style={{
