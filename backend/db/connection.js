@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const colors = require("colors");
-const MONGO_URI = process.env.MONGO_URI || "mongodb://localhost:27017/registerpage";
+const MONGO_URI = process.env.MONGO_URI || "mongodb+srv://saavansavaliya702_db_user:ziMPtxbnv2ySpeef@workerdata.6ka75lk.mongodb.net/?appName=WorkerData";
 
 mongoose
   .connect(MONGO_URI)
