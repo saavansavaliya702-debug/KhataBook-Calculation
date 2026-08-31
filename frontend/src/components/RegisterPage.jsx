@@ -1,5 +1,5 @@
 // src/components/Register.js
-import React, { useState } from "react";
+import { useState } from "react";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
 
@@ -17,8 +17,8 @@ const Register = () => {
 
   const handleChange = (e) => {
     setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
+      ...formData,    // Copies all existing form data
+      [e.target.name]: e.target.value,    // Updates only the changed field
     });
   };
 

@@ -8,9 +8,9 @@ import {
 
 // Corrected file import paths to match actual file names and extensions
 import Register from "./components/RegisterPage.jsx";
-import Login from "./components/login.js";
-import Worker from "./components/worker.js";
-import ProtectedRoute from "./components/protectRoute.js";
+import Login from "./components/LoginPage.jsx";
+import Worker from "./components/WorkerPage.jsx";
+import ProtectedRoute from "./components/protectRoute.jsx";
 
 import "./App.css";
 

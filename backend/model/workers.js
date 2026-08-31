@@ -11,10 +11,7 @@ const WorkerSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    shape: {
-      type: String,
-      required: true,
-    },
+    totalCount: { type: Number, required: true },
     totalWeight: {
       type: Number,
       required: true,

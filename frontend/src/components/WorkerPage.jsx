@@ -2,24 +2,21 @@ import { useState, useEffect, useMemo } from "react";
 import "../App.css";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import { useNavigate } from "react-router-dom"; // 1. Import useNavigate
+import { useNavigate } from "react-router-dom";
 
 function Worker() {
   const [name, setName] = useState("");
-  const [weight, setWeight] = useState("");
   const [selectedShape, setSelectedShape] = useState("Fancy");
+  const [weight, setWeight] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const [store, setStore] = useState([]);
 
-  const navigate = useNavigate(); // 2. Initialize navigate
-  // 3. Create the function to clear token and log out
+  const navigate = useNavigate();
+
   const handleLogout = () => {
-    // Remove the token and user data from localStorage
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-
-    // Redirect user to login page
     navigate("/login");
   };
 
@@ -42,50 +39,16 @@ function Worker() {
     getStudents();
   }, []);
 
-  const generateStoredPDF = () => {
-    if (store.length === 0) return;
-
-    const doc = new jsPDF();
-    doc.text("Stored Records", 14, 15);
-
-    autoTable(doc, {
-      startY: 22,
-      head: [
-        [
-          "Name",
-          "Shape",
-          "Total Weight",
-          "Total Rupee",
-          "Due Amount",
-          "Created At",
-        ],
-      ],
-      body: store.map((item) => [
-        item.name,
-        item.selectedShape || item.shape || "N/A",
-        item.totalWeight?.toFixed(2) || "N/A",
-        `Rs:-${item.totalRupee?.toFixed(2) || "N/A"}`,
-        `Rs:-${item.totalRupee - (40000)?.toFixed(2) || "N/A"}`,
-        new Date(item.createdAt).toLocaleString() || "N/A",
-      ]),
-    });
-
-    doc.save("stored-records.pdf");
-  };
-
   const output = useMemo(() => {
     const arr = weight
       .split(/[\s,]+/)
       .filter(Boolean)
       .map(Number);
 
-    if (arr.length === 0) return null;
+    if (arr.length === 0 || arr.some(isNaN)) return null;
 
-    // Validate all numbers
-    if (arr.some(isNaN)) {
-      // setError("Please enter valid numbers only");
-      return null;
-    }
+    // Calculate total item count automatically
+    const totalCount = arr.length;
 
     const weight0to99 = arr
       .filter((value) => value >= 0 && value <= 99)
@@ -117,8 +80,7 @@ function Worker() {
 
     const isRound = selectedShape === "Round";
 
-    // FIXED: Changed 0 to 10 for Round shape
-    const rupee0to99 = weight0to99 * (isRound ? 0 : 15);
+    const rupee0to99 = weight0to99 * (isRound ? 1 : 15);
     const rupee100to149 = weight100to149 * (isRound ? 8 : 12);
     const rupee150to199 = weight150to199 * (isRound ? 7.25 : 12);
     const rupee200to299 = weight200to299 * (isRound ? 6.75 : 10);
@@ -145,6 +107,7 @@ function Worker() {
       rupee500;
 
     return {
+      totalCount,
       weight0to99,
       weight100to149,
       weight150to199,
@@ -164,6 +127,47 @@ function Worker() {
     };
   }, [weight, selectedShape]);
 
+  const generateStoredPDF = () => {
+    if (store.length === 0) return;
+
+    const doc = new jsPDF();
+    doc.text("Stored Records", 14, 15);
+
+    autoTable(doc, {
+      startY: 22,
+      head: [
+        [
+          "No.",
+          "Name",
+          "Count",
+          "Total Weight",
+          "Total Rupee",
+          "Due Amount",
+        ],
+      ],
+      body: store.map((item, index) => {
+        const itemQuantity =
+          item.totalCount ??
+          (item.weight ? item.weight.split(/[\s,]+/).filter(Boolean).length : "N/A");
+        const due =
+          item.totalRupee != null
+            ? (Number(item.totalRupee) - 40000).toFixed(2)
+            : "N/A";
+
+        return [
+          index + 1,
+          item.name,
+          itemQuantity,
+          item.totalWeight?.toFixed(2) || "N/A",
+          `Rs: ${item.totalRupee?.toFixed(2) || "N/A"}`,
+          `Rs: ${due}`,
+        ];
+      }),
+    });
+
+    doc.save("stored-records.pdf");
+  };
+
   const calculate = async (e) => {
     e.preventDefault();
     if (!name || !selectedShape || !weight) {
@@ -171,7 +175,6 @@ function Worker() {
       return;
     }
 
-    // Validate weight format
     const numbers = weight
       .split(/[\s,]+/)
       .filter(Boolean)
@@ -194,8 +197,9 @@ function Worker() {
         },
         body: JSON.stringify({
           name,
-          weight,
           shape: selectedShape,
+          weight,
+          totalCount: output.totalCount,
           totalWeight: output.totalWeight,
           totalRupee: output.totalRupee,
           dueAmount: output.totalRupee - 40000,
@@ -212,7 +216,6 @@ function Worker() {
       setStore([...store, data]);
       setName("");
       setWeight("");
-      setSelectedShape("Fancy");
       setError("");
     } catch (error) {
       setError(error.message);
@@ -221,7 +224,6 @@ function Worker() {
     }
   };
 
-  // Handle delete functionality
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this entry?")) return;
 
@@ -243,14 +245,12 @@ function Worker() {
 
   return (
     <div className='container'>
-      {/* Loading State */}
       {loading && (
         <div className='loading'>
           <p>Loading data...</p>
         </div>
       )}
 
-      {/* Error State */}
       {error && (
         <div className='error' style={{ color: "red", marginBottom: "20px" }}>
           <p>⚠️ Error: {error}</p>
@@ -280,12 +280,14 @@ function Worker() {
             Logout / Expire Token
           </button>
         </div>
+
         <select
           value={selectedShape}
           onChange={(e) => setSelectedShape(e.target.value)}>
           <option value='Fancy'>Fancy</option>
           <option value='Round'>Round</option>
         </select>
+
         <input
           type='text'
           placeholder='Enter person name'
@@ -317,7 +319,7 @@ function Worker() {
               <tr key='range-0-99'>
                 <td>0-99</td>
                 <td>{output.weight0to99}</td>
-                <td>{selectedShape === "Round" ? "₹0" : "₹15"}</td>
+                <td>{selectedShape === "Round" ? "₹1" : "₹15"}</td>
                 <td>₹{output.rupee0to99.toFixed(2)}</td>
               </tr>
               <tr key='range-100-149'>
@@ -361,6 +363,10 @@ function Worker() {
           <hr />
           <div className='summary'>
             <div className='summary-item'>
+              <h3>Total Items</h3>
+              <div className='value'>{output.totalCount}</div>
+            </div>
+            <div className='summary-item'>
               <h3>Total Weight</h3>
               <div className='value'>{output.totalWeight.toFixed(2)}</div>
             </div>
@@ -374,12 +380,7 @@ function Worker() {
 
       {/* Display stored data */}
       {store.length > 0 && (
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
           <div className='two-box'>
             <h2 className='storedata'>Stored Records ({store.length})</h2>
             <button className='databtn' onClick={generateStoredPDF}>
@@ -390,46 +391,53 @@ function Worker() {
             <thead>
               <tr>
                 <th>Name</th>
-                <th>Shape</th>
+                <th>Count</th>
                 <th>Total Weight</th>
                 <th>Total Rupee</th>
                 <th>Due Amount</th>
                 <th>Date & Time</th>
+                <th>Action</th>
               </tr>
             </thead>
             <tbody>
-              {store.map((item) => (
-                <tr key={item._id}>
-                  <td>{item.name}</td>
-                  <td>{item.selectedShape || item.shape}</td>
-                  <td>{item.totalWeight?.toFixed(2) || "N/A"}</td>
-                  <td>₹{item.totalRupee?.toFixed(2) || "N/A"}</td>
-                  <td>
-                    {item.totalRupee != null ?
-                      `₹${(Number(item.totalRupee) - 40000).toFixed(2)}`
-                    : "N/A"}
-                  </td>
-                  <td>
-                    {item.createdAt ?
-                      new Date(item.createdAt).toLocaleString()
-                    : "N/A"}
-                  </td>
-                  <td>
-                    <button
-                      onClick={() => handleDelete(item._id)}
-                      style={{
-                        background: "#ff4444",
-                        color: "white",
-                        border: "none",
-                        padding: "5px 10px",
-                        borderRadius: "4px",
-                        cursor: "pointer",
-                      }}>
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {store.map((item) => {
+                const itemQuantity =
+                  item.totalCount ??
+                  (item.weight ? item.weight.split(/[\s,]+/).filter(Boolean).length : "N/A");
+
+                return (
+                  <tr key={item._id}>
+                    <td>{item.name}</td>
+                    <td>{itemQuantity}</td>
+                    <td>{item.totalWeight?.toFixed(2) || "N/A"}</td>
+                    <td>₹{item.totalRupee?.toFixed(2) || "N/A"}</td>
+                    <td>
+                      {item.totalRupee != null
+                        ? `₹${(Number(item.totalRupee) - 40000).toFixed(2)}`
+                        : "N/A"}
+                    </td>
+                    <td>
+                      {item.createdAt
+                        ? new Date(item.createdAt).toLocaleString()
+                        : "N/A"}
+                    </td>
+                    <td>
+                      <button
+                        onClick={() => handleDelete(item._id)}
+                        style={{
+                          background: "#ff4444",
+                          color: "white",
+                          border: "none",
+                          padding: "5px 10px",
+                          borderRadius: "4px",
+                          cursor: "pointer",
+                        }}>
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -439,3 +447,18 @@ function Worker() {
 }
 
 export default Worker;
+
+
+
+{/* <div class="btn-group">
+  <button type="button" class="btn btn-danger dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+    Danger
+  </button>
+  <ul class="dropdown-menu">
+    <li><a class="dropdown-item" href="#">Action</a></li>
+    <li><a class="dropdown-item" href="#">Another action</a></li>
+    <li><a class="dropdown-item" href="#">Something else here</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><a class="dropdown-item" href="#">Separated link</a></li>
+  </ul>
+</div> */}
