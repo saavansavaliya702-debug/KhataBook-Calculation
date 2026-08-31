@@ -17,8 +17,8 @@ const Register = () => {
 
   const handleChange = (e) => {
     setFormData({
-      ...formData,    // Copies all existing form data
-      [e.target.name]: e.target.value,    // Updates only the changed field
+      ...formData, // Copies all existing form data
+      [e.target.name]: e.target.value, // Updates only the changed field
     });
   };
 
@@ -62,7 +62,14 @@ const Register = () => {
 
   return (
     <div className='auth-container'>
+
+      <video autoPlay loop muted playsInline className="bg-video">
+        <source src="/background.mp4" type="video/mp4" />
+        Your browser does not support the video tag.
+      </video>
       <div className='auth-card'>
+        <img src='../../public/logo.png' alt='Logo' />
+
         <h2>Register</h2>
         {error && <div className='error-message'>{error}</div>}
         {success && <div className='success-message'>{success}</div>}

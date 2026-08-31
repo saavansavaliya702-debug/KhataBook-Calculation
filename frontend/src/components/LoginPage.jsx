@@ -47,7 +47,13 @@ const Login = () => {
 
   return (
     <div className='auth-container'>
+      <video autoPlay loop muted playsInline className="bg-video">
+        <source src="/background.mp4" type="video/mp4" />
+        Your browser does not support the video tag.
+      </video>
+      
       <div className='auth-card'>
+        <img src="../../public/logo.png" alt="Logo" />;
         <h2>Login</h2>
         {error && <div className='error-message'>{error}</div>}
         <form onSubmit={handleSubmit}>

@@ -136,23 +136,18 @@ function Worker() {
     autoTable(doc, {
       startY: 22,
       head: [
-        [
-          "No.",
-          "Name",
-          "Count",
-          "Total Weight",
-          "Total Rupee",
-          "Due Amount",
-        ],
+        ["No.", "Name", "Count", "Total Weight", "Total Rupee", "Due Amount"],
       ],
       body: store.map((item, index) => {
         const itemQuantity =
           item.totalCount ??
-          (item.weight ? item.weight.split(/[\s,]+/).filter(Boolean).length : "N/A");
+          (item.weight ?
+            item.weight.split(/[\s,]+/).filter(Boolean).length
+          : "N/A");
         const due =
-          item.totalRupee != null
-            ? (Number(item.totalRupee) - 40000).toFixed(2)
-            : "N/A";
+          item.totalRupee != null ?
+            (Number(item.totalRupee) - 40000).toFixed(2)
+          : "N/A";
 
         return [
           index + 1,
@@ -245,6 +240,10 @@ function Worker() {
 
   return (
     <div className='container'>
+      <video autoPlay loop muted playsInline className="bg-video">
+        <source src="/background.mp4" type="video/mp4" />
+        Your browser does not support the video tag.
+      </video>
       {loading && (
         <div className='loading'>
           <p>Loading data...</p>
@@ -258,6 +257,8 @@ function Worker() {
       )}
 
       <form className='form' onSubmit={calculate}>
+        <img src='../../public/logo.png' alt='Logo' className="mainpage" />
+
         <div
           style={{
             display: "flex",
@@ -277,7 +278,7 @@ function Worker() {
               borderRadius: "4px",
               cursor: "pointer",
             }}>
-            Logout / Expire Token
+            Logout
           </button>
         </div>
 
@@ -403,7 +404,9 @@ function Worker() {
               {store.map((item) => {
                 const itemQuantity =
                   item.totalCount ??
-                  (item.weight ? item.weight.split(/[\s,]+/).filter(Boolean).length : "N/A");
+                  (item.weight ?
+                    item.weight.split(/[\s,]+/).filter(Boolean).length
+                  : "N/A");
 
                 return (
                   <tr key={item._id}>
@@ -412,14 +415,14 @@ function Worker() {
                     <td>{item.totalWeight?.toFixed(2) || "N/A"}</td>
                     <td>₹{item.totalRupee?.toFixed(2) || "N/A"}</td>
                     <td>
-                      {item.totalRupee != null
-                        ? `₹${(Number(item.totalRupee) - 40000).toFixed(2)}`
-                        : "N/A"}
+                      {item.totalRupee != null ?
+                        `₹${(Number(item.totalRupee) - 40000).toFixed(2)}`
+                      : "N/A"}
                     </td>
                     <td>
-                      {item.createdAt
-                        ? new Date(item.createdAt).toLocaleString()
-                        : "N/A"}
+                      {item.createdAt ?
+                        new Date(item.createdAt).toLocaleString()
+                      : "N/A"}
                     </td>
                     <td>
                       <button
@@ -448,9 +451,8 @@ function Worker() {
 
 export default Worker;
 
-
-
-{/* <div class="btn-group">
+{
+  /* <div class="btn-group">
   <button type="button" class="btn btn-danger dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
     Danger
   </button>
@@ -461,4 +463,5 @@ export default Worker;
     <li><hr class="dropdown-divider"></li>
     <li><a class="dropdown-item" href="#">Separated link</a></li>
   </ul>
-</div> */}
+</div> */
+}
