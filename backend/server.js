@@ -14,7 +14,7 @@ app.use(
     origin: [
       "http://localhost:5173",
       "http://localhost:3000",
-      "https://company-calculation-frontend.onrender.com",
+      "https://khatabook-calculation-for.onrender.com",
     ],
     credentials: true,
     methods: ["GET", "POST", "PATCH", "DELETE"],
