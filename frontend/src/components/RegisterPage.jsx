@@ -68,7 +68,7 @@ const Register = () => {
         Your browser does not support the video tag.
       </video>
       <div className='auth-card'>
-        <img src='../../public/logo.png' alt='Logo' />
+        <img src='/logo.png' alt='Logo' />
 
         <h2>Register</h2>
         {error && <div className='error-message'>{error}</div>}
