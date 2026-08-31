@@ -63,6 +63,8 @@ const Register = () => {
   return (
     <div className='auth-container'>
       <div className='auth-card'>
+                <img src="../../public/logo.png" alt="Logo" />;
+
         <h2>Register</h2>
         {error && <div className='error-message'>{error}</div>}
         {success && <div className='success-message'>{success}</div>}
