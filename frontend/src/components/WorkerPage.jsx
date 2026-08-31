@@ -277,7 +277,7 @@ function Worker() {
               borderRadius: "4px",
               cursor: "pointer",
             }}>
-            Logout / Expire Token
+            Logout 
           </button>
         </div>
 
