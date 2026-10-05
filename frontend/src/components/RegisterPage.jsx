@@ -36,20 +36,14 @@ const Register = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post(
+      await axios.post(
         "https://khatabook-calculation.onrender.com/api/auth/register",
         formData,
       );
 
-      // Automatically login after registration
-      localStorage.setItem("token", response.data.token);
-      localStorage.setItem("user", JSON.stringify(response.data.user));
-
-      setSuccess("Registration successful! Redirecting...");
-
-      // Redirect to dashboard
+      setSuccess("Registration successful! Please log in to continue.");
       setTimeout(() => {
-        navigate("/worker");
+        navigate("/login", { replace: true });
       }, 1500);
     } catch (err) {
       setError(
