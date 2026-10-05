@@ -2,6 +2,12 @@ const mongoose = require("mongoose");
 
 const WorkerSchema = new mongoose.Schema(
   {
+    personId: {
+      type: mongoose.Schema.Types.ObjectId,
+    },
+    personNumber: {
+      type: Number,
+    },
     name: {
       type: String,
       required: true,
@@ -24,7 +30,9 @@ const WorkerSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-
+    recordDate: {
+      type: Date,
+    },
     createdAt: {
       type: Date,
       default: Date.now,
