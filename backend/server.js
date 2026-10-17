@@ -22,6 +22,8 @@ app.use(
   cors({
     origin: [
       "http://localhost:5173",
+      "http://localhost:5174",
+      "http://localhost:5175",
       "http://localhost:3000",
       "https://khatabook-calculation-for.onrender.com",
     ],
@@ -159,13 +161,25 @@ app.post("/People", async (req, res) => {
     return res.status(500).json({ message: error.message });
   }
 });
-
+// routes/people or inside server.js
 app.delete("/People/:id", async (req, res) => {
   try {
     const person = await Person.findByIdAndDelete(req.params.id);
     if (!person) {
       return res.status(404).json({ message: "Person was not found" });
     }
+
+    // If no people remain, reset the personNumber counter so the next
+    // person starts back at 1.
+    const remaining = await Person.countDocuments();
+    if (remaining === 0) {
+      await Counter.findByIdAndUpdate(
+        "personNumber",
+        { $set: { sequence: 0 } },
+        { upsert: true, new: true, setDefaultsOnInsert: true },
+      );
+    }
+
     return res.status(200).json({
       message: "Person removed; existing ledger records were kept",
     });

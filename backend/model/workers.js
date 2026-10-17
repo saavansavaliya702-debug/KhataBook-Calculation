@@ -1,42 +1,31 @@
 const mongoose = require("mongoose");
 
+const WeightEntrySchema = new mongoose.Schema(
+  {
+    value: { type: Number, required: true },
+    addedAt: { type: Date, default: Date.now },
+  },
+  { _id: false },
+);
+
 const WorkerSchema = new mongoose.Schema(
   {
-    personId: {
-      type: mongoose.Schema.Types.ObjectId,
-    },
-    personNumber: {
-      type: Number,
-    },
-    name: {
+    personId: { type: mongoose.Schema.Types.ObjectId },
+    personNumber: { type: Number },
+    name: { type: String, required: true, minlength: 3 },
+    shape: {
       type: String,
-      required: true,
-      minlength: 3,
+      enum: ["Fancy", "Round"],
+      default: "Fancy",
     },
-    weight: {
-      type: String,
-      required: true,
-    },
+    weight: { type: String, required: true },
+    weightEntries: { type: [WeightEntrySchema], default: [] },
     totalCount: { type: Number, required: true },
-    totalWeight: {
-      type: Number,
-      required: true,
-    },
-    totalRupee: {
-      type: Number,
-      required: true,
-    },
-    dueAmount: {
-      type: String,
-      required: true,
-    },
-    recordDate: {
-      type: Date,
-    },
-    createdAt: {
-      type: Date,
-      default: Date.now,
-    },
+    totalWeight: { type: Number, required: true },
+    totalRupee: { type: Number, required: true },
+    dueAmount: { type: Number },
+    recordDate: { type: Date },
+    createdAt: { type: Date, default: Date.now },
   },
   {
     versionKey: false,

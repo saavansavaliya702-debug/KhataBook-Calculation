@@ -2,6 +2,7 @@
 import { useState } from "react";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
+import "../CSS/register.css"
 
 const Register = () => {
   const [formData, setFormData] = useState({
