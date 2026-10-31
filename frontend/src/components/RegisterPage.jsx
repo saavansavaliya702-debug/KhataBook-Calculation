@@ -5,7 +5,7 @@ import { useNavigate, Link } from "react-router-dom";
 import "../CSS/register.css"
 
 // Override with VITE_API_BASE in a .env file when the API is deployed.
-const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:5000";
+const API_BASE = import.meta.env.VITE_API_BASE || "https://thecompany-backend.onrender.com";
 
 const Register = () => {
   const [formData, setFormData] = useState({
