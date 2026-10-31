@@ -4,7 +4,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { useNavigate } from "react-router-dom";
 
-const API_BASE = "http://localhost:5000";
+const API_BASE = "https://thecompany-backend.onrender.com";
 
 const getLocalDateValue = (date) => {
   const year = date.getFullYear();
