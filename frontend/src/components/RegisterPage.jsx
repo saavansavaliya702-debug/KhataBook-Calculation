@@ -4,6 +4,9 @@ import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
 import "../CSS/register.css"
 
+// Override with VITE_API_BASE in a .env file when the API is deployed.
+const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:5000";
+
 const Register = () => {
   const [formData, setFormData] = useState({
     name: "",
@@ -37,10 +40,7 @@ const Register = () => {
     setLoading(true);
 
     try {
-      await axios.post(
-        "https://khatabook-calculation.onrender.com/api/auth/register",
-        formData,
-      );
+      await axios.post(`${API_BASE}/api/auth/register`, formData);
 
       setSuccess("Registration successful! Please log in to continue.");
       setTimeout(() => {

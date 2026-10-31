@@ -229,6 +229,57 @@
   box-shadow: 0 10px 22px rgba(90, 55, 40, 0.28);
 }
 
+/* ─── Deduction toggle row ──────────────────────────────────
+   Full-width row placed under the entry fields, above the
+   submit button. Only rendered when a person is selected. */
+.deduction-row {
+  margin: 4px 0 18px;
+  padding: 14px 16px;
+  border: 1px solid #dce6e1;
+  border-radius: 12px;
+  background: #f1f7f4;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.deduction-row:hover {
+  background: #eaf4ef;
+  border-color: #c9dcd4;
+}
+
+.deduction-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #344944;
+  font-weight: 500;
+  line-height: 1.45;
+  user-select: none;
+}
+
+.deduction-toggle input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  accent-color: #347d68;
+  flex-shrink: 0;
+  border-radius: 4px;
+}
+
+.deduction-toggle-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.deduction-toggle-text strong {
+  color: #347d68;
+  font-weight: 700;
+}
+
 /* ─── Calculation preview card ─── */
 .dashboard .students-list {
   min-width: 0;
@@ -471,6 +522,17 @@
 .shape-badge-mini.round {
   background: #fdf1e3;
   color: #a06a2c;
+}
+
+.shape-badge-mini.both {
+  background: #e9f0fb;
+  color: #3a5b8c;
+}
+
+.shape-badge-group {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
 }
 
 /* ─── View toggle (Monthwise / Datewise) ─── */
@@ -1011,6 +1073,20 @@
     font-size: 0.85rem;
   }
 
+  .deduction-row {
+    padding: 12px 14px;
+  }
+
+  .deduction-toggle {
+    font-size: 0.85rem;
+    gap: 9px;
+  }
+
+  .deduction-toggle input[type="checkbox"] {
+    width: 17px;
+    height: 17px;
+  }
+
   .dashboard .summary {
     flex-direction: column;
     gap: 12px;
@@ -1284,14 +1360,4 @@
   .themed-alert-btn {
     width: 100%;
   }
-}
-/* ─── Shape badge group (multi-shape row) ─── */
-.shape-badge-group {
-  display: inline-flex;
-  flex-wrap: wrap;
-  gap: 4px;
-}
-.shape-badge-mini.both {
-  background: #e9f0fb;
-  color: #3a5b8c;
 }

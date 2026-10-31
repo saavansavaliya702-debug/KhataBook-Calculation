@@ -1,48 +1,46 @@
+// db/connection.js
+// Replaces the old Mongoose connection: verifies PostgreSQL is reachable and
+// applies db/schema.sql (idempotent) before the server starts accepting
+// requests. server.js awaits the exported promise.
 require("dotenv").config({ quiet: true });
 
-const mongoose = require("mongoose");
+const fs = require("node:fs/promises");
+const path = require("node:path");
 const colors = require("colors");
 
-const rawMongoUri = process.env.MONGO_URI || "";
-const MONGO_URI = rawMongoUri || "mongodb://127.0.0.1:27017/khatabook";
+const { pool } = require("./pool");
 
-// Fallback to local MongoDB if Atlas connection fails
-const tryConnection = async (uri) => {
+const SCHEMA_FILE = path.join(__dirname, "schema.sql");
+
+const target = () =>
+  `${process.env.DB_USER || "postgres"}@${process.env.DB_HOST || "localhost"}:${
+    process.env.DB_PORT || 5432
+  }/${process.env.DB_NAME || "OfficeData"}`;
+
+const bootstrap = async () => {
+  await pool.query("SELECT 1");
+  console.log(colors.green(`✅ PostgreSQL connected (${target()})`));
+
+  const schema = await fs.readFile(SCHEMA_FILE, "utf8");
+  await pool.query(schema);
+  console.log(colors.green("✅ Database schema is up to date"));
+};
+
+const databaseReady = bootstrap();
+
+let closing = false;
+const shutdown = async (signal) => {
+  if (closing) return;
+  closing = true;
   try {
-    await mongoose.connect(uri);
-    console.log(colors.rainbow("✅ MongoDB is successfully connected"));
-  } catch (error) {
-    if (uri.includes("mongodb+srv://") && error.message.includes("ECONNREFUSED")) {
-      console.log(colors.yellow("⚠️ MongoDB Atlas connection failed, trying local MongoDB..."));
-      await tryConnection("mongodb://127.0.0.1:27017/khatabook");
-    } else {
-      throw error;
-    }
+    await pool.end();
+    console.log(colors.yellow(`⚠️ PostgreSQL pool closed (${signal})`));
+  } finally {
+    process.exit(0);
   }
 };
 
-if (!/^mongodb(?:\+srv)?:\/\//.test(MONGO_URI)) {
-  throw new Error("MONGO_URI must be a valid mongodb:// or mongodb+srv:// URI");
-}
+process.on("SIGINT", () => shutdown("SIGINT"));
+process.on("SIGTERM", () => shutdown("SIGTERM"));
 
-const connectionPromise = tryConnection(MONGO_URI);
-
-mongoose.connection.on("connected", () => {
-  console.log(colors.green("MongoDB connected successfully"));
-});
-
-mongoose.connection.on("error", (err) => {
-  console.error(colors.red("MongoDB connection error:"), err);
-});
-
-mongoose.connection.on("disconnected", () => {
-  console.log(colors.yellow("MongoDB disconnected"));
-});
-
-process.on("SIGINT", async () => {
-  await mongoose.connection.close();
-  console.log(colors.yellow("⚠️ MongoDB connection closed due to app termination"));
-  process.exit(0);
-});
-
-module.exports = connectionPromise;
+module.exports = databaseReady;

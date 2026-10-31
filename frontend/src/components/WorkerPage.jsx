@@ -18,6 +18,9 @@ const getRecordDate = (record) => {
   return Number.isNaN(date.getTime()) ? null : date;
 };
 
+const getPersonKey = (personId, personName, personNumber) =>
+  personId || `${personName || "unknown"}__${personNumber || "—"}`;
+
 const computeTotals = (arr, shape) => {
   const isRound = shape === "Round";
 
@@ -164,6 +167,16 @@ function Worker() {
     getLocalDateValue(new Date()).slice(0, 7),
   );
 
+  // ── per-person ₹40,000 deduction state ──
+  const [deductionByPerson, setDeductionByPerson] = useState(() => {
+    try {
+      const saved = localStorage.getItem("worker-deduction-by-person");
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  });
+
   // View mode + selected date for the Datewise view
   const [viewMode, setViewMode] = useState("monthwise"); // "monthwise" | "datewise"
   const [selectedDate, setSelectedDate] = useState(() =>
@@ -185,12 +198,46 @@ function Worker() {
 
   const navigate = useNavigate();
 
-  // Helper: show a themed alert
+  // persist per-person deduction map
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        "worker-deduction-by-person",
+        JSON.stringify(deductionByPerson),
+      );
+    } catch {
+      /* ignore storage errors */
+    }
+  }, [deductionByPerson]);
+
+  const getDeduction = (key) =>
+    Object.prototype.hasOwnProperty.call(deductionByPerson, key)
+      ? deductionByPerson[key]
+      : true;
+
+  const toggleDeduction = (key) => {
+    setDeductionByPerson((prev) => {
+      const current = Object.prototype.hasOwnProperty.call(prev, key)
+        ? prev[key]
+        : true;
+      return { ...prev, [key]: !current };
+    });
+  };
+
+  const selectedPersonKey = useMemo(
+    () =>
+      getPersonKey(
+        selectedPersonId,
+        name,
+        people.find((p) => p._id === selectedPersonId)?.personNumber,
+      ),
+    [selectedPersonId, name, people],
+  );
+
   const showAlert = (type, title, message) => {
     setAlert({ type, title, message });
   };
 
-  // Helper: show a themed confirm
   const showConfirm = ({
     title,
     message,
@@ -238,9 +285,11 @@ function Worker() {
     const map = new Map();
 
     for (const record of displayedRecords) {
-      const key =
-        record.personId ||
-        `${record.name || "unknown"}__${record.personNumber || "—"}`;
+      const key = getPersonKey(
+        record.personId,
+        record.name,
+        record.personNumber,
+      );
 
       if (!map.has(key)) {
         map.set(key, {
@@ -276,7 +325,10 @@ function Worker() {
       .map((group) => ({
         ...group,
         shapes: [...group.shapes],
-        totalDue: group.totalRupee - group.recordIds.length * 40000,
+        // per-person deduction (still applied internally for save/PDF)
+        totalDue: getDeduction(group.key)
+          ? group.totalRupee - group.recordIds.length * 40000
+          : group.totalRupee,
       }))
       .sort((left, right) => {
         const leftDate = left.earliestDate ? left.earliestDate.getTime() : 0;
@@ -285,7 +337,7 @@ function Worker() {
           : 0;
         return rightDate - leftDate;
       });
-  }, [displayedRecords]);
+  }, [displayedRecords, deductionByPerson]);
 
   const groupedTotals = useMemo(
     () =>
@@ -294,8 +346,9 @@ function Worker() {
           count: totals.count + group.totalCount,
           weight: totals.weight + group.totalWeight,
           rupees: totals.rupees + group.totalRupee,
+          due: totals.due + group.totalDue,
         }),
-        { count: 0, weight: 0, rupees: 0 },
+        { count: 0, weight: 0, rupees: 0, due: 0 },
       ),
     [groupedRecords],
   );
@@ -469,13 +522,7 @@ function Worker() {
       ["TOTAL ITEMS", String(groupedTotals.count)],
       ["TOTAL WEIGHT", `${groupedTotals.weight.toFixed(2)} units`],
       ["GROSS VALUE", `Rs. ${groupedTotals.rupees.toFixed(2)}`],
-      [
-        "TOTAL DUE",
-        `Rs. ${(
-          groupedTotals.rupees -
-          displayedRecords.length * 40000
-        ).toFixed(2)}`,
-      ],
+      ["TOTAL DUE", `Rs. ${groupedTotals.due.toFixed(2)}`],
     ];
     const cardGap = 4;
     const cardWidth =
@@ -627,6 +674,13 @@ function Worker() {
       return getLocalDateValue(recordDate) === entryDateKey;
     });
 
+    const personKeyForSave = getPersonKey(
+      selectedPersonId,
+      name,
+      selectedPerson?.personNumber,
+    );
+    const shouldDeduct = getDeduction(personKeyForSave);
+
     try {
       if (existingEntry) {
         const existingWeights = (existingEntry.weight || "").trim();
@@ -657,7 +711,9 @@ function Worker() {
               totalCount: totals.totalCount,
               totalWeight: totals.totalWeight,
               totalRupee: totals.totalRupee,
-              dueAmount: totals.totalRupee - 40000,
+              dueAmount: shouldDeduct
+                ? totals.totalRupee - 40000
+                : totals.totalRupee,
             }),
           },
         );
@@ -695,7 +751,9 @@ function Worker() {
             totalCount: output.totalCount,
             totalWeight: output.totalWeight,
             totalRupee: output.totalRupee,
-            dueAmount: output.totalRupee - 40000,
+            dueAmount: shouldDeduct
+              ? output.totalRupee - 40000
+              : output.totalRupee,
             recordDate: new Date(`${entryDateKey}T12:00:00`).toISOString(),
           }),
         });
@@ -761,7 +819,6 @@ function Worker() {
     });
   };
 
-  // Bulk delete for a grouped row in RECORDS OVERVIEW
   const handleDeleteGroup = (group) => {
     const count = group.recordIds.length;
     showConfirm({
@@ -850,7 +907,6 @@ function Worker() {
         Your browser does not support the video tag.
       </video>
 
-      {/* Themed alert / confirm modal */}
       <ThemedAlert alert={alert} onClose={closeAlert} />
 
       {loading && (
@@ -1043,6 +1099,24 @@ function Worker() {
                 </span>
               </div>
             </div>
+
+            {/* ── Deduction toggle — its own dedicated full-width row ── */}
+            {selectedPersonId && (
+              <div className="deduction-row">
+                <label className="deduction-toggle">
+                  <input
+                    type="checkbox"
+                    checked={getDeduction(selectedPersonKey)}
+                    onChange={() => toggleDeduction(selectedPersonKey)}
+                  />
+                  <span className="deduction-toggle-text">
+                    Apply <strong>₹40,000</strong> deduction for{" "}
+                    <strong>{selectedPerson?.name || "this person"}</strong>
+                  </span>
+                </label>
+              </div>
+            )}
+
             <button type="submit">Save entry to ledger</button>
           </form>
 

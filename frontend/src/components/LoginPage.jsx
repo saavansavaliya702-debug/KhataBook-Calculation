@@ -3,6 +3,9 @@ import  { useState } from "react";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
 
+// Override with VITE_API_BASE in a .env file when the API is deployed.
+const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:5000";
+
 const Login = () => {
   const [formData, setFormData] = useState({
     email: "",
@@ -25,10 +28,7 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post(
-        "https://khatabook-calculation.onrender.com/api/auth/login",
-        formData,
-      );
+      const response = await axios.post(`${API_BASE}/api/auth/login`, formData);
 
       // Store token and user data
       localStorage.setItem("token", response.data.token);
