@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import "./RecordDetailPage.css";
 
-const API_BASE = "http://localhost:5000";
+const API_BASE = "https://thecompany-backend.onrender.com";
 
 const getRecordDate = (record) => {
   const date = new Date(record.recordDate || record.createdAt);
